@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#eef2f7">
+<title>우리집 포켓몬</title>
+<style>
+:root{
+  --bg:#eef2f7; --ink:#1d2433; --muted:#6b7487; --card:#fff; --line:#dde3ec;
+  --good:#1f9d55; --warn:#e3262f; --screen:#4a63d8; --screen-dark:#2f44b0;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;-webkit-tap-highlight-color:transparent;user-select:none}
+button{font:inherit;cursor:pointer}
+input,select{font:inherit}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 24px 8px}
+.time{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.clock{font-size:48px;font-weight:800;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.date{color:var(--muted);font-size:20px;font-weight:600}
+.parent-btn{border:0;background:var(--card);border-radius:14px;padding:12px 16px;font-size:16px;font-weight:700;color:var(--muted);box-shadow:0 1px 0 var(--line)}
+
+main{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;padding:12px 24px 32px;align-items:start}
+.empty{grid-column:1/-1;text-align:center;padding:80px 16px;color:var(--muted);font-size:20px;line-height:1.6}
+.empty b{color:var(--ink)}
+
+.kid{display:flex;flex-direction:column;gap:14px;max-width:460px;width:100%;margin:0 auto}
+.device{border-radius:30px;padding:16px;background:var(--frame);box-shadow:0 12px 26px rgba(20,30,60,.16),inset 0 -6px 0 rgba(0,0,0,.08)}
+.screen{border-radius:16px;padding:12px 14px 14px;color:#fff;background-color:var(--screen);
+  background-image:linear-gradient(45deg,rgba(255,255,255,.07) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.07) 75%),linear-gradient(45deg,rgba(255,255,255,.07) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.07) 75%);
+  background-size:18px 18px;background-position:0 0,9px 9px;box-shadow:inset 0 0 0 3px rgba(0,0,0,.18)}
+.scr-top{display:flex;justify-content:space-between;font-size:15px;font-weight:800;opacity:.95}
+.scr-top .no{font-variant-numeric:tabular-nums;opacity:.85}
+.stage-box{position:relative;margin:10px 0 12px;height:230px;border-radius:16px;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.sprite{height:170px;width:auto;image-rendering:pixelated;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.pill{display:block;width:max-content;max-width:100%;margin:0 auto;padding:6px 22px;border-radius:999px;background:var(--screen-dark);font-weight:800;font-size:18px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+.rar{position:absolute;top:8px;right:10px;font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:rgba(0,0,0,.25)}
+
+.egg{width:110px;height:140px;border-radius:50% 50% 46% 46%/58% 58% 42% 42%;
+  background:radial-gradient(circle at 30% 30%,#9fd68a 0 12px,transparent 13px),radial-gradient(circle at 70% 55%,#9fd68a 0 15px,transparent 16px),radial-gradient(circle at 38% 78%,#9fd68a 0 10px,transparent 11px),radial-gradient(circle at 35% 25%,#fffdf4,#f1e7c9 70%);
+  box-shadow:inset -10px -12px 0 rgba(0,0,0,.06),0 8px 0 rgba(0,0,0,.12);animation:wobble 2.6s ease-in-out infinite;transform-origin:50% 90%}
+@keyframes wobble{0%,70%,100%{transform:rotate(0)}76%{transform:rotate(-8deg)}84%{transform:rotate(7deg)}92%{transform:rotate(-4deg)}}
+
+.xp{background:var(--card);border-radius:18px;padding:14px 16px;box-shadow:0 1px 0 var(--line)}
+.xp-row{display:flex;justify-content:space-between;font-size:15px;font-weight:700;color:var(--muted);margin-bottom:8px}
+.xp-row b{color:var(--ink)}
+.bar{height:16px;border-radius:999px;background:#e6ebf3;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#52c27a,#2fa860);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+
+.chores{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.chore{width:100%;display:flex;align-items:center;gap:14px;border:0;border-radius:18px;padding:16px 18px;background:var(--card);box-shadow:0 1px 0 var(--line);text-align:left;font-size:20px;font-weight:700;color:var(--ink);position:relative;transition:transform .12s}
+.chore:active{transform:scale(.98)}
+.chore .box{flex:none;width:34px;height:34px;border-radius:11px;border:3px solid #c7cfdc;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff}
+.chore .pts{margin-left:auto;font-size:15px;color:var(--muted);font-weight:700}
+.chore.done{background:#e7f6ec;color:#2b6b44}
+.chore.done .box{background:var(--good);border-color:var(--good)}
+.chore.done .t{text-decoration:line-through;text-decoration-thickness:2px}
+.float{position:absolute;right:18px;top:6px;font-weight:900;color:var(--good);font-size:20px;pointer-events:none;animation:floatUp .9s ease-out forwards}
+@keyframes floatUp{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-34px)}}
+.alldone{text-align:center;font-weight:800;color:var(--good);font-size:17px}
+.dex-btn{border:0;border-radius:16px;padding:14px;background:transparent;color:var(--muted);font-size:16px;font-weight:700;border:2px dashed #cdd5e1}
+
+/* overlays */
+.ov{position:fixed;top:0;right:0;bottom:0;left:0;z-index:50;background:rgba(14,20,40,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+.ov-card{width:min(440px,100%);background:#fff;border-radius:28px;padding:22px;text-align:center}
+.ov-stage{position:relative;height:250px;border-radius:20px;background:var(--screen);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.ov-stage>*{position:absolute}
+.ov-stage .sprite{height:190px}
+.ov-stage .ov-from{animation:evoBlink 1.8s ease-in forwards}
+.ov-stage .ov-to{opacity:0;animation:evoIn .9s 1.7s cubic-bezier(.2,.9,.3,1.3) forwards}
+.ov-flash{top:0;right:0;bottom:0;left:0;background:#fff;opacity:0;animation:flash .7s 1.45s ease-out}
+@keyframes evoBlink{0%{filter:none}18%{filter:brightness(0) invert(1)}28%{filter:none}44%{filter:brightness(0) invert(1)}54%{filter:none}70%{filter:brightness(0) invert(1);opacity:1}100%{filter:brightness(0) invert(1);opacity:0}}
+@keyframes evoIn{0%{opacity:0;transform:scale(.4);filter:brightness(0) invert(1)}60%{opacity:1;transform:scale(1.12);filter:brightness(0) invert(1)}100%{opacity:1;transform:scale(1);filter:none}}
+@keyframes flash{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+.ov-text{opacity:0;animation:fadeUp .5s 2.3s ease-out forwards}
+.ov-text.now{animation-delay:0s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.ov-card h2{margin:18px 0 6px;font-size:26px}
+.ov-card p{margin:0 0 18px;color:var(--muted);font-size:17px;line-height:1.5}
+.big-btn{border:0;border-radius:16px;padding:14px 28px;background:var(--ink);color:#fff;font-size:18px;font-weight:800}
+
+.modal{position:fixed;top:0;right:0;bottom:0;left:0;z-index:40;background:rgba(14,20,40,.5);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow:auto}
+.sheet{width:min(760px,100%);background:#fff;border-radius:24px;padding:22px;user-select:text}
+.sheet h2{margin:0 0 4px;font-size:24px}
+.sheet h3{margin:22px 0 10px;font-size:18px}
+.sheet .sub{color:var(--muted);margin:0 0 14px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.x{border:0;background:#eef1f6;border-radius:12px;padding:10px 14px;font-weight:800}
+.pk{border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.row input[type=text],.row input:not([type]){flex:1;min-width:140px}
+.row input,.row select{border:1px solid #cfd6e2;border-radius:10px;padding:9px 11px;background:#fff}
+.row input[type=number]{width:76px}
+.sb{border:0;border-radius:10px;padding:9px 12px;background:#eef1f6;font-weight:700;color:var(--ink)}
+.sb.star{background:#fff3c4}
+.sb.red{background:#fde7e8;color:var(--warn)}
+.sb.dark{background:var(--ink);color:#fff}
+.now-line{font-weight:700}
+.now-line span{color:var(--muted);font-weight:600}
+
+.pin{display:flex;flex-direction:column;align-items:center;gap:14px;padding:12px 0}
+.pin input{font-size:32px;text-align:center;letter-spacing:12px;width:220px;border:2px solid #cfd6e2;border-radius:14px;padding:10px}
+.pin .err{color:var(--warn);font-weight:700;min-height:1.4em}
+
+.dex{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.dex-item{border-radius:16px;background:var(--screen);color:#fff;padding:10px;text-align:center}
+.dex-item img{height:90px;image-rendering:pixelated}
+.dex-item b{display:block}
+.dex-item small{opacity:.8}
+
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:60;background:var(--ink);color:#fff;padding:14px 22px;border-radius:16px;font-weight:800;font-size:18px;animation:fadeUp .25s ease-out}
+
+@media (max-width:640px){
+  header{padding:14px 16px 4px}
+  .clock{font-size:36px}.date{font-size:16px}
+  main{padding:8px 16px 24px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="time"><span class="clock" id="clock">--:--</span><span class="date" id="date"></span></div>
+  <button class="parent-btn" id="parentBtn">🔒 부모</button>
+</header>
+<main id="kids"></main>
+
+<script>
+// ---------- 포켓몬 데이터 ----------
+// r: c=보통, r=희귀, l=전설. 진화 단계 순서대로.
+const CHAINS = [
+  {r:'c',ids:[1,2,3],ko:['이상해씨','이상해풀','이상해꽃']},
+  {r:'c',ids:[4,5,6],ko:['파이리','리자드','리자몽']},
+  {r:'c',ids:[7,8,9],ko:['꼬부기','어니부기','거북왕']},
+  {r:'c',ids:[10,11,12],ko:['캐터피','단데기','버터플']},
+  {r:'c',ids:[172,25,26],ko:['피츄','피카츄','라이츄']},
+  {r:'c',ids:[173,35,36],ko:['삐','삐삐','픽시']},
+  {r:'c',ids:[174,39,40],ko:['푸푸린','푸린','푸크린']},
+  {r:'c',ids:[152,153,154],ko:['치코리타','베이리프','메가니움']},
+  {r:'c',ids:[155,156,157],ko:['브케인','마그케인','블레이범']},
+  {r:'c',ids:[158,159,160],ko:['리아코','엘리게이','장크로다일']},
+  {r:'c',ids:[252,253,254],ko:['나무지기','나무돌이','나무킹']},
+  {r:'c',ids:[255,256,257],ko:['아차모','영치코','번치코']},
+  {r:'c',ids:[258,259,260],ko:['물짱이','늪짱이','대짱이']},
+  {r:'c',ids:[52,53],ko:['나옹','페르시온']},
+  {r:'c',ids:[54,55],ko:['고라파덕','골덕']},
+  {r:'c',ids:[129,130],ko:['잉어킹','갸라도스']},
+  {r:'r',ids:[92,93,94],ko:['고오스','고우스트','팬텀']},
+  {r:'r',ids:[175,176,468],ko:['토게피','토게틱','토게키스']},
+  {r:'r',ids:[147,148,149],ko:['미뇽','신뇽','망나뇽']},
+  {r:'r',ids:[447,448],ko:['리오르','루카리오']},
+  {r:'r',ids:[133,196],ko:['이브이','에브이']},
+  {r:'l',ids:[151],ko:['뮤']},
+  {r:'l',ids:[251],ko:['세레비']},
+];
+const RARITY = {c:'보통', r:'희귀', l:'전설'};
+const GRAD = {c:200, r:350, l:500};   // 도감 졸업에 필요한 XP
+const HATCH = 20;                     // 알이 부화하는 XP
+const FRAMES = [
+  {id:'white',name:'하양',c:'#f3efe6'}, {id:'yellow',name:'노랑',c:'#f2c230'},
+  {id:'black',name:'검정',c:'#2a2b30'}, {id:'pink',name:'분홍',c:'#f4a6c0'},
+  {id:'mint',name:'민트',c:'#8fd6c1'},  {id:'red',name:'빨강',c:'#e3262f'},
+];
+const DEFAULT_CHORES = ['양치하기','숙제하기','책 읽기','장난감 정리','옷 정리하기'];
+const KEY = 'pokemon-pet-v1';
+
+const SPRITE = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${id}.gif`;
+const SPRITE_STATIC = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+
+// ---------- 저장 ----------
+const pad = n => String(n).padStart(2,'0');
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const uid = () => Math.random().toString(36).slice(2,9);
+// 받침에 맞는 조사: josa('피카츄','가','이') → '피카츄가'. 로/으로는 ㄹ받침도 '로'.
+function josa(w, a, b){
+  const c = w.charCodeAt(w.length-1) - 0xAC00;
+  if (c < 0 || c > 11171) return w + a;
+  const t = c % 28;
+  return w + ((t === 0 || (a === '로' && t === 8)) ? a : b);
+}
+const esc = s =>String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function load(){
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.v === 1) return s; } catch(e) {}
+  return {v:1, pin:'0000', sticker:30, day:today(), kids:[]};
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) { toast('저장에 실패했어요'); } }
+let S = load();
+
+// ---------- 성장 규칙 ----------
+function pickChain(dex){
+  const owned = new Set(dex.map(d => d.chain));
+  const roll = Math.random();
+  const rar = roll < .05 ? 'l' : roll < .30 ? 'r' : 'c';
+  const idx = CHAINS.map((c,i) => i);
+  let pool = idx.filter(i => CHAINS[i].r === rar && !owned.has(i));
+  if (!pool.length) pool = idx.filter(i => !owned.has(i));
+  if (!pool.length) pool = idx;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+const chainOf = k => CHAINS[k.chain];
+function stageStart(c, s){ return s < 0 ? 0 : HATCH + (GRAD[c.r]-HATCH)*s/c.ids.length; }
+function stageOf(k){
+  const c = chainOf(k);
+  if (k.xp < HATCH) return -1;
+  return Math.min(c.ids.length-1, Math.floor((k.xp-HATCH)/((GRAD[c.r]-HATCH)/c.ids.length)));
+}
+function nextGoal(k){
+  const c = chainOf(k), s = stageOf(k);
+  if (s < 0) return {at:HATCH, label:'부화까지'};
+  if (s < c.ids.length-1) return {at:stageStart(c,s+1), label:'진화까지'};
+  return {at:GRAD[c.r], label:'도감 졸업까지'};
+}
+
+// XP를 주거나 빼고, 부화·진화·졸업 이벤트를 돌려준다. 빼더라도 퇴화하지는 않는다.
+function giveXP(k, amt){
+  const c = chainOf(k), before = stageOf(k);
+  if (amt < 0){ k.xp = Math.max(stageStart(c, before), k.xp + amt); return []; }
+  k.xp += amt;
+  const ev = [];
+  if (k.xp >= GRAD[c.r]){
+    const finalId = c.ids[c.ids.length-1];
+    if (before < c.ids.length-1) ev.push({type:'evolve', k, from:before, to:c.ids.length-1, chain:k.chain});
+    k.dex.push({chain:k.chain, id:finalId, date:today()});
+    ev.push({type:'grad', k, id:finalId, name:c.ko[c.ko.length-1]});
+    k.chain = pickChain(k.dex);
+    k.xp = 0;
+  } else {
+    const after = stageOf(k);
+    if (after > before) ev.push({type: before < 0 ? 'hatch' : 'evolve', k, from:before, to:after, chain:k.chain});
+  }
+  return ev;
+}
+
+function newKid(name){
+  return {id:uid(), name, frame:FRAMES[S.kids.length % FRAMES.length].id, xp:0, chain:pickChain([]),
+          chores:DEFAULT_CHORES.map(t => ({id:uid(), t, xp:10})), done:{}, dex:[]};
+}
+
+// ---------- 화면 ----------
+const $ = s => document.querySelector(s);
+function spriteImg(id, cls='sprite'){
+  return `<img class="${cls}" src="${SPRITE(id)}" alt="" draggable="false" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${SPRITE_STATIC(id)}'}">`;
+}
+const frameColor = id => (FRAMES.find(f => f.id === id) || FRAMES[0]).c;
+
+function render(){
+  const root = $('#kids');
+  if (!S.kids.length){
+    root.innerHTML = `<div class="empty">아직 아이가 없어요.<br>오른쪽 위 <b>🔒 부모</b>를 눌러 아이를 추가해 주세요.<br><small>처음 비밀번호는 <b>0000</b>이에요.</small></div>`;
+    return;
+  }
+  root.innerHTML = S.kids.map(k => {
+    const c = chainOf(k), s = stageOf(k), g = nextGoal(k);
+    const lo = s < 0 ? 0 : stageStart(c, s);
+    const pct = Math.max(0, Math.min(100, (k.xp-lo)/(g.at-lo)*100));
+    const id = s < 0 ? null : c.ids[s];
+    const doneCount = k.chores.filter(ch => k.done[ch.id]).length;
+    return `<section class="kid" style="--frame:${frameColor(k.frame)}">
+      <div class="device"><div class="screen">
+        <div class="scr-top"><span>${esc(k.name)}의 포켓몬</span><span class="no">${id ? '№.'+String(id).padStart(3,'0') : '№.???'}</span></div>
+        <div class="stage-box">${id ? spriteImg(id) : '<div class="egg"></div>'}${c.r !== 'c' && id ? `<span class="rar">${RARITY[c.r]}</span>` : ''}</div>
+        <span class="pill">${id ? c.ko[s] : '알'}</span>
+      </div></div>
+      <div class="xp">
+        <div class="xp-row"><span>${g.label} <b>${Math.ceil(g.at-k.xp)} XP</b></span><span>${k.xp} / ${Math.round(g.at)}</span></div>
+        <div class="bar"><i style="width:${pct}%"></i></div>
+      </div>
+      <ul class="chores">${k.chores.map(ch => `<li><button class="chore ${k.done[ch.id]?'done':''}" data-kid="${k.id}" data-chore="${ch.id}">
+          <span class="box">${k.done[ch.id]?'✓':''}</span><span class="t">${esc(ch.t)}</span><span class="pts">+${ch.xp}</span></button></li>`).join('')}</ul>
+      ${k.chores.length && doneCount === k.chores.length ? `<div class="alldone">오늘 할 일 끝! 정말 멋져요 🎉</div>` : ''}
+      <button class="dex-btn" data-dex="${k.id}">📖 도감 ${k.dex.length}마리</button>
+    </section>`;
+  }).join('');
+}
+
+$('#kids').addEventListener('click', e => {
+  const b = e.target.closest('.chore');
+  if (b){
+    const k = S.kids.find(x => x.id === b.dataset.kid), ch = k && k.chores.find(x => x.id === b.dataset.chore);
+    if (!ch) return;
+    let ev = [];
+    if (k.done[ch.id]){ delete k.done[ch.id]; giveXP(k, -ch.xp); }
+    else { k.done[ch.id] = true; ev = giveXP(k, ch.xp); }
+    save(); render();
+    if (k.done[ch.id]){
+      const nb = document.querySelector(`.chore[data-chore="${ch.id}"]`);
+      if (nb) nb.insertAdjacentHTML('beforeend', `<span class="float">+${ch.xp}</span>`);
+    }
+    queue(ev);
+    return;
+  }
+  const d = e.target.closest('[data-dex]');
+  if (d) openDex(S.kids.find(x => x.id === d.dataset.dex));
+});
+
+// ---------- 진화 연출 ----------
+let evq = [], showing = false;
+function queue(ev){ evq.push(...ev); if (!showing) nextEvent(); }
+function nextEvent(){
+  const e = evq.shift();
+  if (!e){ showing = false; return; }
+  showing = true;
+  const ov = document.createElement('div');
+  ov.className = 'ov';
+  const name = esc(e.k.name);
+  let stage, title, msg, now = false;
+  if (e.type === 'hatch'){
+    const c = CHAINS[e.chain];
+    stage = `<div class="egg ov-from"></div><div class="ov-flash"></div>${spriteImg(c.ids[e.to], 'sprite ov-to')}`;
+    title = `알이 부화했어요!`;
+    msg = `${name}에게 ${c.r!=='c' ? `${RARITY[c.r]} 포켓몬 ` : ''}<b>${josa(c.ko[e.to],'가','이')}</b> 태어났어요.`;
+  } else if (e.type === 'evolve'){
+    const c = CHAINS[e.chain];
+    stage = `${spriteImg(c.ids[e.from], 'sprite ov-from')}<div class="ov-flash"></div>${spriteImg(c.ids[e.to], 'sprite ov-to')}`;
+    title = `진화했어요!`;
+    msg = `${josa(c.ko[e.from],'가','이')} <b>${josa(c.ko[e.to],'로','으로')}</b> 진화했어요!`;
+  } else {
+    stage = spriteImg(e.id);
+    title = `도감에 등록했어요!`;
+    msg = `${name}의 <b>${josa(e.name,'가','이')}</b> 다 자라서 도감에 들어갔어요.<br>새 알을 받았어요!`;
+    now = true;
+  }
+  ov.innerHTML = `<div class="ov-card"><div class="ov-stage">${stage}</div>
+    <div class="ov-text ${now?'now':''}"><h2>${title}</h2><p>${msg}</p><button class="big-btn">좋아요!</button></div></div>`;
+  ov.querySelector('.big-btn').onclick = () => { ov.remove(); nextEvent(); };
+  document.body.appendChild(ov);
+}
+
+// ---------- 도감 ----------
+function openModal(html){
+  const m = document.createElement('div');
+  m.className = 'modal';
+  m.innerHTML = `<div class="sheet">${html}</div>`;
+  m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-close]')) m.remove(); });
+  document.body.appendChild(m);
+  return m;
+}
+function openDex(k){
+  const items = k.dex.slice().reverse().map(d => `<div class="dex-item">${spriteImg(d.id,'')}<b>${CHAINS[d.chain].ko[CHAINS[d.chain].ko.length-1]}</b><small>${d.date}</small></div>`).join('');
+  openModal(`<div class="sheet-head"><h2>${esc(k.name)}의 도감</h2><button class="x" data-close>닫기</button></div>
+    <p class="sub">끝까지 키워서 졸업한 포켓몬이에요.</p>
+    ${items ? `<div class="dex">${items}</div>` : '<p class="sub">아직 졸업한 포켓몬이 없어요. 할 일을 하면서 키워 봐요!</p>'}`);
+}
+
+// ---------- 부모 설정 ----------
+$('#parentBtn').onclick = () => {
+  const m = openModal(`<div class="sheet-head"><h2>부모 확인</h2><button class="x" data-close>닫기</button></div>
+    <form class="pin"><input type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="····"><div class="err"></div><button class="big-btn">열기</button></form>`);
+  const inp = m.querySelector('input');
+  inp.focus();
+  m.querySelector('form').onsubmit = e => {
+    e.preventDefault();
+    if (inp.value === S.pin){ m.remove(); openPanel(); }
+    else { m.querySelector('.err').textContent = '비밀번호가 달라요'; inp.value = ''; }
+  };
+};
+
+function openPanel(){
+  const m = openModal('');
+  const sheet = m.querySelector('.sheet');
+  const draw = () => {
+    sheet.innerHTML = `<div class="sheet-head"><h2>부모 설정</h2><button class="x" data-close>닫기</button></div>
+      <p class="sub">바꾼 내용은 바로 저장돼요.${S.pin === '0000' ? ' <b>아래에서 비밀번호를 바꿔 주세요.</b>' : ''}</p>
+      ${S.kids.map(k => {
+        const c = chainOf(k), s = stageOf(k);
+        return `<div class="pk" data-kid="${k.id}">
+          <div class="row"><input data-f="name" value="${esc(k.name)}" placeholder="이름">
+            <select data-f="frame">${FRAMES.map(f => `<option value="${f.id}" ${f.id===k.frame?'selected':''}>${f.name} 테두리</option>`).join('')}</select>
+            <button class="sb red" data-act="delkid">아이 삭제</button></div>
+          <div class="row now-line">지금: ${s<0 ? '알' : c.ko[s]} <span>(${k.xp} XP · ${RARITY[c.r]} · 도감 ${k.dex.length}마리)</span></div>
+          <div class="row"><button class="sb star" data-act="sticker">⭐ 칭찬 스티커 +${S.sticker}</button>
+            <button class="sb" data-act="xp" data-n="10">+10 XP</button><button class="sb" data-act="xp" data-n="-10">-10 XP</button>
+            <button class="sb" data-act="reroll">새 알로 바꾸기</button></div>
+          <h3>할 일</h3>
+          ${k.chores.map(ch => `<div class="row" data-chore="${ch.id}"><input data-f="t" value="${esc(ch.t)}"><input type="number" min="1" max="200" data-f="xp" value="${ch.xp}"> XP
+            <button class="sb red" data-act="delchore">✕</button></div>`).join('')}
+          <button class="sb" data-act="addchore">+ 할 일 추가</button>
+        </div>`;
+      }).join('')}
+      <div class="row"><button class="sb dark" data-act="addkid">+ 아이 추가</button></div>
+      <h3>설정</h3>
+      <div class="row">칭찬 스티커 XP <input type="number" min="1" max="500" data-g="sticker" value="${S.sticker}"></div>
+      <div class="row">새 비밀번호 <input type="password" inputmode="numeric" maxlength="8" data-g="pin" placeholder="숫자 4~8자리"></div>
+      <h3>백업</h3>
+      <p class="sub">이 기록은 이 컴퓨터의 이 브라우저에만 저장돼요. 가끔 백업 파일을 받아 두세요.</p>
+      <div class="row"><button class="sb" data-act="export">백업 파일 받기</button>
+        <label class="sb">백업에서 되살리기<input type="file" accept="application/json" data-g="import" hidden></label>
+        <button class="sb red" data-act="wipe">전체 초기화</button></div>`;
+  };
+  draw();
+
+  const kidOf = el => { const p = el.closest('[data-kid]'); return p && S.kids.find(k => k.id === p.dataset.kid); };
+  sheet.addEventListener('change', e => {
+    const el = e.target, k = kidOf(el);
+    if (el.dataset.g === 'sticker'){ S.sticker = Math.max(1, +el.value || 30); save(); draw(); return; }
+    if (el.dataset.g === 'pin'){
+      if (/^\d{4,8}$/.test(el.value)){ S.pin = el.value; save(); toast('비밀번호를 바꿨어요'); draw(); }
+      else toast('숫자 4~8자리로 넣어 주세요');
+      return;
+    }
+    if (el.dataset.g === 'import'){
+      const f = el.files[0]; if (!f) return;
+      f.text().then(t => {
+        const s = JSON.parse(t);
+        if (!s || s.v !== 1 || !Array.isArray(s.kids)) throw 0;
+        S = s; save(); render(); draw(); toast('백업을 되살렸어요');
+      }).catch(() => toast('백업 파일이 아니에요'));
+      return;
+    }
+    if (!k) return;
+    const chRow = el.closest('[data-chore]');
+    if (chRow){
+      const ch = k.chores.find(x => x.id === chRow.dataset.chore);
+      if (el.dataset.f === 't') ch.t = el.value.trim() || ch.t;
+      if (el.dataset.f === 'xp') ch.xp = Math.max(1, Math.min(200, +el.value || 10));
+    } else if (el.dataset.f === 'name') k.name = el.value.trim() || k.name;
+    else if (el.dataset.f === 'frame') k.frame = el.value;
+    save(); render();
+  });
+  sheet.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const act = b.dataset.act, k = kidOf(b);
+    if (act === 'addkid'){
+      const name = prompt('아이 이름을 적어 주세요');
+      if (name && name.trim()){ S.kids.push(newKid(name.trim())); }
+    } else if (act === 'delkid'){
+      if (!confirm(`${k.name}의 기록을 모두 지울까요? 되돌릴 수 없어요.`)) return;
+      S.kids = S.kids.filter(x => x !== k);
+    } else if (act === 'sticker'){
+      toast(`${k.name}에게 칭찬 스티커 ⭐ +${S.sticker}`);
+      queue(giveXP(k, S.sticker));
+    } else if (act === 'xp'){
+      queue(giveXP(k, +b.dataset.n));
+    } else if (act === 'reroll'){
+      if (!confirm(`지금 키우는 포켓몬 대신 새 알을 줄까요? 지금 XP는 사라져요.`)) return;
+      k.chain = pickChain(k.dex); k.xp = 0;
+    } else if (act === 'addchore'){
+      k.chores.push({id:uid(), t:'새 할 일', xp:10});
+    } else if (act === 'delchore'){
+      const id = b.closest('[data-chore]').dataset.chore;
+      k.chores = k.chores.filter(x => x.id !== id); delete k.done[id];
+    } else if (act === 'export'){
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], {type:'application/json'}));
+      a.download = `우리집포켓몬-백업-${today()}.json`;
+      a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      return;
+    } else if (act === 'wipe'){
+      if (!confirm('모든 아이와 도감 기록을 지울까요? 되돌릴 수 없어요.')) return;
+      S = {v:1, pin:S.pin, sticker:S.sticker, day:today(), kids:[]};
+    }
+    save(); render(); draw();
+  });
+}
+
+function toast(msg){
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2400);
+}
+
+// ---------- 시계와 하루 초기화 ----------
+const DAYS = ['일','월','화','수','목','금','토'];
+function tick(){
+  const d = new Date();
+  $('#clock').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  $('#date').textContent = `${d.getMonth()+1}월 ${d.getDate()}일 ${DAYS[d.getDay()]}요일`;
+  if (S.day !== today()){ S.day = today(); S.kids.forEach(k => k.done = {}); save(); render(); }
+}
+tick(); setInterval(tick, 1000);
+
+// 태블릿에 띄워 둘 때 화면이 꺼지지 않게 한다 (https 주소에서만 동작).
+let wake = null;
+async function keepAwake(){
+  try { if ("wakeLock" in navigator && document.visibilityState === "visible" && !wake){
+    wake = await navigator.wakeLock.request("screen");
+    wake.addEventListener("release", () => { wake = null; });
+  } } catch(e) {}
+}
+document.addEventListener("visibilitychange", keepAwake);
+document.addEventListener("click", keepAwake);
+keepAwake();
+render();
+</script>
+</body>
+</html>
