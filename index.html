@@ -103,6 +103,11 @@ main{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2
 .now-line{font-weight:700}
 .now-line span{color:var(--muted);font-weight:600}
 
+.ask{z-index:45;align-items:center}
+.ask-sheet{width:min(420px,100%)}
+.ask-input{width:100%;font-size:20px;border:2px solid #cfd6e2;border-radius:12px;padding:12px;margin:6px 0 4px}
+.ask-btns{justify-content:flex-end;margin-top:14px}
+.ask-btns .sb{padding:12px 18px;font-size:16px}
 .pin{display:flex;flex-direction:column;align-items:center;gap:14px;padding:12px 0}
 .pin input{font-size:32px;text-align:center;letter-spacing:12px;width:220px;border:2px solid #cfd6e2;border-radius:14px;padding:10px}
 .pin .err{color:var(--warn);font-weight:700;min-height:1.4em}
@@ -422,14 +427,14 @@ function openPanel(){
     else if (el.dataset.f === 'frame') k.frame = el.value;
     save(); render();
   });
-  sheet.addEventListener('click', e => {
+  sheet.addEventListener('click', async e => {
     const b = e.target.closest('[data-act]'); if (!b) return;
     const act = b.dataset.act, k = kidOf(b);
     if (act === 'addkid'){
-      const name = prompt('아이 이름을 적어 주세요');
+      const name = await ask({title:'아이 추가', input:'아이 이름', ok:'추가'});
       if (name && name.trim()){ S.kids.push(newKid(name.trim())); }
     } else if (act === 'delkid'){
-      if (!confirm(`${k.name}의 기록을 모두 지울까요? 되돌릴 수 없어요.`)) return;
+      if (!await ask({title:`${k.name} 삭제`, msg:`${k.name}의 포켓몬과 도감 기록을 모두 지울까요? 되돌릴 수 없어요.`, ok:'삭제', danger:true})) return;
       S.kids = S.kids.filter(x => x !== k);
     } else if (act === 'sticker'){
       toast(`${k.name}에게 칭찬 스티커 ⭐ +${S.sticker}`);
@@ -437,7 +442,7 @@ function openPanel(){
     } else if (act === 'xp'){
       queue(giveXP(k, +b.dataset.n));
     } else if (act === 'reroll'){
-      if (!confirm(`지금 키우는 포켓몬 대신 새 알을 줄까요? 지금 XP는 사라져요.`)) return;
+      if (!await ask({title:'새 알로 바꾸기', msg:`${josa(k.name,'가','이')} 지금 키우는 포켓몬 대신 새 알을 줄까요? 지금 XP는 사라져요.`, ok:'바꾸기'})) return;
       k.chain = pickChain(k.dex); k.xp = 0;
     } else if (act === 'addchore'){
       k.chores.push({id:uid(), t:'새 할 일', xp:10});
@@ -451,10 +456,32 @@ function openPanel(){
       a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
       return;
     } else if (act === 'wipe'){
-      if (!confirm('모든 아이와 도감 기록을 지울까요? 되돌릴 수 없어요.')) return;
+      if (!await ask({title:'전체 초기화', msg:'모든 아이와 도감 기록을 지울까요? 되돌릴 수 없어요.', ok:'모두 지우기', danger:true})) return;
       S = {v:1, pin:S.pin, sticker:S.sticker, day:today(), kids:[]};
     }
     save(); render(); draw();
+  });
+}
+
+// 앱 안에서 띄우는 확인·입력 창. 브라우저 기본 창(prompt/confirm)은
+// 카카오톡 인앱 브라우저나 일부 태블릿 앱 모드에서 막혀서 쓰지 않는다.
+function ask({title, msg = '', input = null, ok = '확인', danger = false}){
+  return new Promise(resolve => {
+    const m = document.createElement('div');
+    m.className = 'modal ask';
+    m.innerHTML = `<form class="sheet ask-sheet"><h2>${esc(title)}</h2>${msg ? `<p class="sub">${esc(msg)}</p>` : ''}
+      ${input !== null ? `<input class="ask-input" maxlength="20" placeholder="${esc(input)}">` : ''}
+      <div class="row ask-btns"><button type="button" class="sb" data-no>취소</button><button class="sb ${danger ? 'red' : 'dark'}">${esc(ok)}</button></div></form>`;
+    const done = v => { m.remove(); resolve(v); };
+    const inp = m.querySelector('input');
+    m.querySelector('form').onsubmit = e => {
+      e.preventDefault();
+      if (inp){ const v = inp.value.trim(); if (!v){ inp.focus(); return; } done(v); }
+      else done(true);
+    };
+    m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-no]')) done(input !== null ? null : false); });
+    document.body.appendChild(m);
+    if (inp) inp.focus();
   });
 }
 
